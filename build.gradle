@@ -20,16 +20,6 @@ android {
         versionName '0.7.5'
     }
 
-    // Keep the legacy flat layout (src/, res/, AndroidManifest.xml at the
-    // repository root) instead of moving 84 files into src/main/.
-    sourceSets {
-        main {
-            java.srcDirs = ['src']
-            res.srcDirs = ['res']
-            manifest.srcFile 'AndroidManifest.xml'
-        }
-    }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
