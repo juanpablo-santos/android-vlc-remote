@@ -73,7 +73,8 @@ public class NotificationControls {
         stackBuilder.addParentStack(PlaybackActivity.class);
         // Adds the Intent that starts the Activity to the top of the stack
         stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         builder.setContentIntent(resultPendingIntent);
         
         boolean isTransparent = Preferences.get(context).isNotificationIconTransparent();

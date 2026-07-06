@@ -67,7 +67,8 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
     
     private static PendingIntent createManualAppWidgetUpdateIntent(Context context) {
         Intent intent = new Intent(Intents.ACTION_MANUAL_APPWIDGET_UPDATE);
-        return PendingIntent.getBroadcast(context, 0, intent, 0);
+        intent.setClass(context, org.peterbaldwin.client.android.vlcremote.MediaAppWidgetProvider.class);
+        return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     /**
