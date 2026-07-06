@@ -18,7 +18,7 @@
 package org.peterbaldwin.vlcremote.receiver;
 
 import org.peterbaldwin.vlcremote.model.Preferences;
-import org.peterbaldwin.vlcremote.net.MediaServer;
+import org.peterbaldwin.vlcremote.work.StatusUpdateWorker;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,6 +27,10 @@ import android.telephony.TelephonyManager;
 
 /**
  * Automatically pauses media when there is an incoming call.
+ * <p>
+ * {@code onReceive} runs on the main thread from a background context, so the
+ * actual VLC request is handed off to {@link StatusUpdateWorker} rather than
+ * performed inline or via a (now-restricted) background service start.
  */
 public class PhoneStateChangedReceiver extends BroadcastReceiver {
 
@@ -35,20 +39,15 @@ public class PhoneStateChangedReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
-            Preferences preferences = Preferences.get(context);
-            String authority = preferences.getAuthority();
+            String authority = Preferences.get(context).getAuthority();
             if (authority != null) {
-                MediaServer server = new MediaServer(context, authority);
                 String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
                 if (TelephonyManager.EXTRA_STATE_RINGING.equals(state)
                         || TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
                     // Pause for both incoming and outgoing calls
-                    server.status().onlyIfPlaying().setResumeOnIdle().command.playback.pause();
+                    StatusUpdateWorker.enqueue(context, StatusUpdateWorker.ACTION_PAUSE_FOR_CALL);
                 } else if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
-                    if (preferences.isResumeOnIdleSet()) {
-                        server.status().onlyIfPaused().command.playback.pause();
-                        preferences.clearResumeOnIdle();
-                    }
+                    StatusUpdateWorker.enqueue(context, StatusUpdateWorker.ACTION_RESUME_AFTER_CALL);
                 }
             }
         }

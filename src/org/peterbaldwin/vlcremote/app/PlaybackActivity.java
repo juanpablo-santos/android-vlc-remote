@@ -159,7 +159,14 @@ public class PlaybackActivity extends FragmentActivity implements TabHost.OnTabC
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_PROGRESS);
         setContentView(R.layout.main);
-        
+        // API 35+ forces edge-to-edge; pad for the system bars (Holo theme
+        // does not do this automatically).
+        org.peterbaldwin.vlcremote.util.WindowInsetsUtil.applySystemBarInsets(this);
+
+        // POST_NOTIFICATIONS is a runtime permission on API 33+; request it so
+        // the ongoing playback notification can be shown.
+        requestNotificationPermission();
+
         // Set the control stream to STREAM_MUSIC to suppress system beeps
         // that sound even when the activity handles volume key events.
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -223,7 +230,25 @@ public class PlaybackActivity extends FragmentActivity implements TabHost.OnTabC
             notifyMediaServerListeners();
         }
     }
-    
+
+    private static final int REQUEST_POST_NOTIFICATIONS = 1;
+
+    /**
+     * Requests the POST_NOTIFICATIONS runtime permission on API 33+. On older
+     * releases the permission is granted at install time, so this is a no-op.
+     * A denial only means the ongoing notification is hidden; it is not fatal.
+     */
+    private void requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[] { android.Manifest.permission.POST_NOTIFICATIONS },
+                        REQUEST_POST_NOTIFICATIONS);
+            }
+        }
+    }
+
     private void setupTabHost() {
         mTabHost.setup();
         addTab(TAB_MEDIA, R.string.nowplaying_title, R.drawable.ic_tab_artists);
@@ -240,7 +265,7 @@ public class PlaybackActivity extends FragmentActivity implements TabHost.OnTabC
     private void addTab(String tag, int label, int icon) {
         TabHost.TabSpec spec = mTabHost.newTabSpec(tag);
         spec.setContent(new TabFactory(this));
-        spec.setIndicator(getText(label), getResources().getDrawable(icon));
+        spec.setIndicator(getText(label), androidx.core.content.ContextCompat.getDrawable(this, icon));
         mTabHost.addTab(spec);
         mTabSpecList.add(spec);
     }
@@ -572,7 +597,7 @@ public class PlaybackActivity extends FragmentActivity implements TabHost.OnTabC
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intents.ACTION_STATUS);
         filter.addAction(Intents.ACTION_ERROR);
-        registerReceiver(mStatusReceiver, filter);
+        androidx.core.content.ContextCompat.registerReceiver(this, mStatusReceiver, filter, androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED);
         if (mMediaServer == null) {
             pickServer();
         }

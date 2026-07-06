@@ -18,6 +18,7 @@
 package org.peterbaldwin.vlcremote.widget;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -25,7 +26,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.preference.Preference;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
 import android.widget.RemoteViews;
@@ -39,12 +39,35 @@ import org.peterbaldwin.vlcremote.model.Status;
  * @author Sam Malone
  */
 public class NotificationControls {
-    
+
+    /**
+     * Notification channel for the ongoing playback-control notification.
+     * Required on API 26+ or {@code notify()} is silently dropped.
+     */
+    public static final String CHANNEL_ID = "playback_controls";
+
     public static void cancel(Context context) {
         ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(ID);
     }
-    
+
     private static final int ID = 1;
+
+    /**
+     * Creates the playback-controls notification channel. Safe to call
+     * repeatedly (creating an existing channel is a no-op) and a no-op below
+     * API 26 where channels do not exist.
+     */
+    public static void createChannel(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                    context.getString(R.string.service_label),
+                    NotificationManager.IMPORTANCE_LOW);
+            channel.setShowBadge(false);
+            manager.createNotificationChannel(channel);
+        }
+    }
 
     public static void showLoading(Context context) {
         show(context, null);
@@ -59,9 +82,10 @@ public class NotificationControls {
         show(context, views.getNotifiation(status, art), views.getNotifiationExpanded(status, art));
     }       
     
-    public static void show(Context context, RemoteViews normal, RemoteViews expanded) {       
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-        
+    public static void show(Context context, RemoteViews normal, RemoteViews expanded) {
+        createChannel(context);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID);
+
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(context, PlaybackActivity.class);
 

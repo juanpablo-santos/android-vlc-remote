@@ -125,6 +125,14 @@ public final class MediaServer {
             mUri = uri;
         }
 
+        final Context getContext() {
+            return mContext;
+        }
+
+        final Uri getUri() {
+            return mUri;
+        }
+
         protected final Intent intent(String encodedQuery) {
             Intent intent = new Intent(Intents.ACTION_STATUS);
             intent.setClass(mContext, StatusService.class);
@@ -231,6 +239,20 @@ public final class MediaServer {
 
         public Status read() throws IOException {
             return read(mUseXml ? new XmlStatusContentHandler() : new JsonStatusContentHandler());
+        }
+
+        /**
+         * Sends a command synchronously (on the calling thread) and returns the
+         * resulting status. Unlike {@link CommandInterface}, which dispatches
+         * asynchronously through {@link StatusService}, this performs the HTTP
+         * request directly, so it is safe to call from a background
+         * {@code WorkManager} worker without starting a service.
+         *
+         * @param encodedQuery e.g. {@code "command=pl_pause"}
+         */
+        public Status readCommand(String encodedQuery) throws IOException {
+            Uri data = getUri().buildUpon().encodedQuery(encodedQuery).build();
+            return new StatusRequest(getContext(), data).read();
         }
 
         /**

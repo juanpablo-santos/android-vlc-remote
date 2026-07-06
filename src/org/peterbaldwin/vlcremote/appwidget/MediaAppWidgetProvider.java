@@ -39,6 +39,7 @@ import org.peterbaldwin.vlcremote.model.Preferences;
 import org.peterbaldwin.vlcremote.model.Status;
 import org.peterbaldwin.vlcremote.net.MediaServer;
 import org.peterbaldwin.vlcremote.widget.RemoteViewsFactory;
+import org.peterbaldwin.vlcremote.work.StatusUpdateWorker;
 
 /**
  * Simple widget to show currently playing album art along with play/pause and
@@ -105,13 +106,15 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        context.startService(Intents.service(context, Intents.ACTION_PROGRAMMATIC_APPWIDGET_UPDATE));
+        // Runs in a background context; enqueue work instead of starting a
+        // service (background service starts are blocked on API 26+).
+        StatusUpdateWorker.enqueue(context, StatusUpdateWorker.ACTION_REFRESH);
     }
 
     private void update(Context context) {
         String authority = Preferences.get(context).getAuthority();
         if (authority != null) {
-            new MediaServer(context, authority).status().get();
+            StatusUpdateWorker.enqueue(context, StatusUpdateWorker.ACTION_REFRESH);
         } else {
             update(context, context.getText(R.string.noserver).toString());
         }

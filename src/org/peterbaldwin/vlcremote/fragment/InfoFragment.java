@@ -64,7 +64,7 @@ public class InfoFragment extends Fragment {
         mStatusReceiver = new StatusReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intents.ACTION_STATUS);
-        getActivity().registerReceiver(mStatusReceiver, filter);
+        androidx.core.content.ContextCompat.registerReceiver(getActivity(), mStatusReceiver, filter, androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     @Override

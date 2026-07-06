@@ -27,7 +27,7 @@ import android.sax.ElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
-import android.text.Html;
+import androidx.core.text.HtmlCompat;
 
 import java.io.IOException;
 import java.net.URLConnection;
@@ -37,7 +37,7 @@ public final class XmlStatusContentHandler extends XmlContentHandler<Status> {
         // The response text is escaped twice so that it can be used in HTML.
         if (text.indexOf("&") != -1) {
             // TODO: Use more efficient unescaping
-            return Html.fromHtml(text.toString()).toString();
+            return HtmlCompat.fromHtml(text.toString(), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
         } else {
             return text;
         }

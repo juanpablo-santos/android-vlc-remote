@@ -24,7 +24,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.text.Html;
+import androidx.core.text.HtmlCompat;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import org.peterbaldwin.client.android.vlcremote.R;
@@ -68,7 +68,7 @@ public class WhatsNewDialog {
     
     public AlertDialog build() {
         TextView tv = new TextView(mContext);
-        tv.setText(Html.fromHtml(getMessage()));
+        tv.setText(HtmlCompat.fromHtml(getMessage(), HtmlCompat.FROM_HTML_MODE_LEGACY));
         tv.setPadding(10, 10, 10, 10);
         ScrollView sv = new ScrollView(mContext);
         sv.addView(tv);

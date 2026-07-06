@@ -75,6 +75,8 @@ public final class PickServerActivity extends FragmentActivity implements Server
         super.onCreate(savedInstanceState);
         PickServerFragment fragment = findOrReplaceFragment(android.R.id.content, TAG, PickServerFragment.class);
         getActionBar().setDisplayHomeAsUpEnabled(true);
+        // API 35+ forces edge-to-edge; pad for the system bars (Holo theme).
+        org.peterbaldwin.vlcremote.util.WindowInsetsUtil.applySystemBarInsets(this);
 
         mPort = getIntent().getIntExtra(PortSweeper.EXTRA_PORT, 0);
         if (mPort == 0) {
@@ -105,7 +107,7 @@ public final class PickServerActivity extends FragmentActivity implements Server
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
-        registerReceiver(mReceiver, filter);
+        androidx.core.content.ContextCompat.registerReceiver(this, mReceiver, filter, androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     private boolean isInitialBroadcast() {

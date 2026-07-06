@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 
@@ -34,6 +35,6 @@ public class ImageLoader extends ModelLoader<Drawable> {
                 
             }
         }
-        return res.getDrawable(R.drawable.albumart_mp_unknown);
+        return ContextCompat.getDrawable(getContext(), R.drawable.albumart_mp_unknown);
     }
 }

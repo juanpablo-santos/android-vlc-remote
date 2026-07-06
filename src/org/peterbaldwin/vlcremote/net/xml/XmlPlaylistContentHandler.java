@@ -18,7 +18,7 @@
 package org.peterbaldwin.vlcremote.net.xml;
 
 import android.net.Uri;
-import android.text.Html;
+import androidx.core.text.HtmlCompat;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.util.Stack;
@@ -78,7 +78,7 @@ public final class XmlPlaylistContentHandler extends XmlContentHandler<Playlist>
 
     private static String unescape(CharSequence text) {
         // TODO: Do this more efficiently
-        return Html.fromHtml(text.toString()).toString();
+        return HtmlCompat.fromHtml(text.toString(), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
     }
 
     private String getText() {

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    VLC's HTTP interface is served over cleartext http:// on the local
+    network, and PortSweeper scans the subnet over raw HTTP. Cleartext is
+    inherent to how this app works, so it is permitted here. API 28+ blocks
+    cleartext by default without this configuration.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

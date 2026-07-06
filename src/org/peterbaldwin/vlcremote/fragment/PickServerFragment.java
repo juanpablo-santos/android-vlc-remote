@@ -167,7 +167,7 @@ public final class PickServerFragment extends PreferenceFragment implements Port
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
-        getActivity().registerReceiver(mReceiver, filter);
+        androidx.core.content.ContextCompat.registerReceiver(getActivity(), mReceiver, filter, androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     @Override
@@ -493,7 +493,19 @@ public final class PickServerFragment extends PreferenceFragment implements Port
         }
     }
 
+    private static final int REQUEST_READ_PHONE_STATE = 2;
+
     private void setPauseForCall(boolean enabled) {
+        if (enabled
+                && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M
+                && getActivity().checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE)
+                        != PackageManager.PERMISSION_GRANTED) {
+            // READ_PHONE_STATE is a runtime permission; request it so the
+            // PHONE_STATE broadcast carries the call state. The component is
+            // still enabled below either way, degrading gracefully if denied.
+            requestPermissions(new String[] { android.Manifest.permission.READ_PHONE_STATE },
+                    REQUEST_READ_PHONE_STATE);
+        }
         getActivity().getPackageManager().setComponentEnabledSetting(
                 PHONE_STATE_RECEIVER,
                 enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
