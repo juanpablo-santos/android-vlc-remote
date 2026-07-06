@@ -18,14 +18,12 @@ package org.peterbaldwin.vlcremote.net;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.widget.Toast;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import org.apache.http.Header;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.protocol.HTTP;
 import org.peterbaldwin.client.android.vlcremote.R;
 import org.peterbaldwin.vlcremote.model.Server;
 
@@ -54,8 +52,8 @@ public class ServerConnectionTest extends AsyncTask<Server, Void, Integer> {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setConnectTimeout(1000);
             try {
-                Header auth = BasicScheme.authenticate(new UsernamePasswordCredentials(servers[0].getUser(), servers[0].getPassword()), HTTP.UTF_8, false);
-                connection.setRequestProperty(auth.getName(), auth.getValue());
+                connection.setRequestProperty("Authorization",
+                        basicAuth(servers[0].getUser(), servers[0].getPassword()));
                 return connection.getResponseCode();
             } finally {
                 connection.disconnect();
@@ -64,6 +62,22 @@ public class ServerConnectionTest extends AsyncTask<Server, Void, Integer> {
             
         }
         return -1;
+    }
+
+    /**
+     * Builds an HTTP Basic {@code Authorization} header value. Replaces the
+     * old Apache HttpClient {@code BasicScheme}, unavailable on API 28+.
+     */
+    private static String basicAuth(String user, String password) {
+        String credentials = user + ":" + password;
+        byte[] bytes;
+        try {
+            bytes = credentials.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            bytes = credentials.getBytes();
+        }
+        // NO_WRAP: default Base64 appends a newline that corrupts the header.
+        return "Basic " + Base64.encodeToString(bytes, Base64.NO_WRAP);
     }
 
     @Override

@@ -24,18 +24,16 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.util.Base64;
 import android.util.Log;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.ContentHandler;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.apache.http.Header;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.protocol.HTTP;
 import org.peterbaldwin.vlcremote.intent.Intents;
 import org.peterbaldwin.vlcremote.model.Directory;
 import org.peterbaldwin.vlcremote.model.Playlist;
@@ -170,6 +168,27 @@ public final class MediaServer {
             }
         }
 
+        /**
+         * Builds an HTTP Basic {@code Authorization} header value from a
+         * {@code user:password} string. Replaces the old Apache HttpClient
+         * {@code BasicScheme}, which is unavailable on API 28+.
+         *
+         * @param usernamePassword credentials in {@code user:password} form
+         * @return e.g. {@code "Basic dXNlcjpwYXNz"}
+         */
+        static String basicAuth(String usernamePassword) {
+            byte[] bytes;
+            try {
+                bytes = usernamePassword.getBytes("UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                // UTF-8 is always available; fall back to platform default.
+                bytes = usernamePassword.getBytes();
+            }
+            // NO_WRAP: the default Base64 flags append a trailing newline,
+            // which would corrupt the header value.
+            return "Basic " + Base64.encodeToString(bytes, Base64.NO_WRAP);
+        }
+
         @SuppressWarnings("unchecked")
         protected final <T> T read(ContentHandler handler) throws IOException {
             String spec = mUri.toString();
@@ -179,9 +198,7 @@ public final class MediaServer {
             try {
                 String usernamePassword = mUri.getUserInfo();
                 if (usernamePassword != null) {
-                    Header authorization = BasicScheme.authenticate(
-                            new UsernamePasswordCredentials(usernamePassword), HTTP.UTF_8, false);
-                    http.setRequestProperty(authorization.getName(), authorization.getValue());
+                    http.setRequestProperty("Authorization", basicAuth(usernamePassword));
                 }
                 return (T) handler.getContent(http);
             } finally {

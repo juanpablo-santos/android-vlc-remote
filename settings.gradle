@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Single-module project: the app sources live at the repository root
+// (src/, res/, AndroidManifest.xml) in the legacy flat layout, so the
+// Android application plugin is applied in the root build.gradle rather
+// than in a nested :app module.
+rootProject.name = "android-vlc-remote"

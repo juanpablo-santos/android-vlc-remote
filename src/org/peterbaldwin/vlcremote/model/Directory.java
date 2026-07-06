@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings("serial")
-public class Directory extends ArrayList<File> implements Comparator<File> {
+public class Directory extends ArrayList<File> {
     
     public static final String UNIX_DIRECTORY = "/";
     public static final String WINDOWS_ROOT_DIRECTORY = "";
@@ -96,45 +96,51 @@ public class Directory extends ArrayList<File> implements Comparator<File> {
     }
 
     /**
-     * Compares two Files that are to be sorted with directories being displayed
-     * before files. The parent entry will be first if present, then the
-     * directories and then files.
-     * @param firstFile
-     * @param secondFile
-     * @return a negative integer, zero, or a positive integer as the first 
-     * argument is less than, equal to, or greater than the second.
+     * Returns a comparator that sorts directories before files. The parent
+     * entry is first if present, then directories, then files.
+     * <p>
+     * This used to be implemented by {@code Directory} itself, but on API 35+
+     * {@code List.reversed()} (from {@code SequencedCollection}) collides with
+     * {@code Comparator.reversed()}, so the ordering now lives in a dedicated
+     * comparator.
      */
-    @Override
-    public int compare(File firstFile, File secondFile) {
-        if((firstFile.isLibrary() || firstFile.isParent()) && !secondFile.isLibrary()) {
-            return -1;
-        }
-        if(!firstFile.isLibrary() && (secondFile.isLibrary() || secondFile.isParent())) {
-            return 1;
-        }
-        boolean isFirstDir = firstFile.isDirectory() || firstFile.isLibraryDir();
-        boolean isSecondDir = secondFile.isDirectory() || secondFile.isLibraryDir();
-        // parent always first
-        if(isFirstDir && firstFile.isParent() && isSecondDir && secondFile.isParent()) {
-            return 0;
-        }
-        if(isFirstDir && firstFile.isParent()) {
-            return -1;
-        }
-        if(isSecondDir && secondFile.isParent()) {
-            return 1;
-        }
-        // then directories next
-        if(isFirstDir && !isSecondDir) {
-            return -1;
-        }
-        if(isSecondDir && !isFirstDir) {
-            return 1;
-        }
-        // then files
-        return firstFile.getName().compareToIgnoreCase(secondFile.getName());
+    public Comparator<File> getDirectoriesFirstComparator() {
+        return new DirectoriesFirstComparator();
     }
-    
+
+    private final static class DirectoriesFirstComparator implements Comparator<File> {
+        @Override
+        public int compare(File firstFile, File secondFile) {
+            if((firstFile.isLibrary() || firstFile.isParent()) && !secondFile.isLibrary()) {
+                return -1;
+            }
+            if(!firstFile.isLibrary() && (secondFile.isLibrary() || secondFile.isParent())) {
+                return 1;
+            }
+            boolean isFirstDir = firstFile.isDirectory() || firstFile.isLibraryDir();
+            boolean isSecondDir = secondFile.isDirectory() || secondFile.isLibraryDir();
+            // parent always first
+            if(isFirstDir && firstFile.isParent() && isSecondDir && secondFile.isParent()) {
+                return 0;
+            }
+            if(isFirstDir && firstFile.isParent()) {
+                return -1;
+            }
+            if(isSecondDir && secondFile.isParent()) {
+                return 1;
+            }
+            // then directories next
+            if(isFirstDir && !isSecondDir) {
+                return -1;
+            }
+            if(isSecondDir && !isFirstDir) {
+                return 1;
+            }
+            // then files
+            return firstFile.getName().compareToIgnoreCase(secondFile.getName());
+        }
+    }
+
     public Comparator<File> getCaseInsensitiveComparator() {
         return new CaseInsensitiveComparator();
     }
